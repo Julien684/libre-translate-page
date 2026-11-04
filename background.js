@@ -22,22 +22,26 @@ function getSettings() {
 
 async function ltFetch(path, body, method) {
   const s = await getSettings();
-  let url = s.serverUrl.replace(/\/+$/, '') + path;
+  const url = s.serverUrl.replace(/\/+$/, '') + path;
   const headers = {};
-  if (body) headers['Content-Type'] = 'application/json';
+  let payload = body;
   if (s.apiKey) {
-    // LibreTranslate accepts the key either as a Bearer header or as the
-    // `api_key` query param. Send both so either server config works.
+    // LibreTranslate servers accept the API key in different places:
+    //  - `api_key` field in the JSON body  (LibreTranslate ≥ 2, most common)
+    //  - `Authorization: Bearer <key>` header
+    //  - `api_key` query parameter
+    // Send it in the body AND the header so any server config is covered.
+    if (payload) payload = Object.assign({}, payload, { api_key: s.apiKey });
     headers['Authorization'] = 'Bearer ' + s.apiKey;
-    url += (url.includes('?') ? '&' : '?') + 'api_key=' + encodeURIComponent(s.apiKey);
   }
+  if (payload) headers['Content-Type'] = 'application/json';
 
   let res;
   try {
     res = await fetch(url, {
-      method: method || (body ? 'POST' : 'GET'),
+      method: method || (payload ? 'POST' : 'GET'),
       headers,
-      body: body ? JSON.stringify(body) : undefined
+      body: payload ? JSON.stringify(payload) : undefined
     });
   } catch (e) {
     throw new Error('Impossible de joindre le serveur : ' + s.serverUrl);
