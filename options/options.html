@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Libre Translate Page — Options</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      max-width: 640px;
+      margin: 32px auto;
+      padding: 0 16px;
+      font-size: 14px;
+    }
+    h1 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
+    h1 img { width: 28px; height: 28px; }
+    .card {
+      margin: 16px 0;
+      padding: 16px;
+      border: 1px solid #dcdce4;
+      border-radius: 10px;
+    }
+    @media (prefers-color-scheme: dark) { .card { border-color: #34363e; } }
+    label { display: block; font-weight: 600; margin: 12px 0 4px; }
+    input, select {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 1px solid #c8c8d0;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .hint { font-size: 12px; color: #888; margin-top: 4px; }
+    .btn {
+      margin-top: 16px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #4f7cff;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover { background: #3d69ec; }
+    #status { margin-top: 10px; font-size: 13px; min-height: 18px; }
+    #status.ok { color: #28a762; }
+    #status.err { color: #d64545; }
+    details { margin-top: 12px; }
+    summary { cursor: pointer; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1><img src="../icons/icon-32.png" alt=""> Libre Translate Page — Options</h1>
+
+  <div class="card">
+    <label for="server">Serveur LibreTranslate</label>
+    <input id="server" type="text" placeholder="http://localhost:5000" spellcheck="false">
+    <div class="hint">URL de votre instance LibreTranslate (ex. <code>http://192.168.1.10:5000</code>).</div>
+
+    <label for="apiKey">Clé API (facultatif)</label>
+    <input id="apiKey" type="password" placeholder="vide si votre serveur ne demande pas de clé" spellcheck="false">
+    <div class="hint">Si votre serveur est protégé par une clé (backend libretranslate), entrez-la ici. Envoyée en en-tête <code>Authorization: Bearer</code>.</div>
+
+    <details>
+      <summary>Langues par défaut</summary>
+      <label for="source">Langue source par défaut</label>
+      <input id="source" type="text" placeholder="auto, ou un code ISO (en, de, es…)">
+      <div class="hint"><code>auto</code> = détection automatique (nécessite la route <code>/detect</code> du serveur).</div>
+
+      <label for="target">Langue cible par défaut</label>
+      <input id="target" type="text" placeholder="fr">
+      <div class="hint">Code ISO de la langue de traduction (ex. <code>fr</code>, <code>en</code>, <code>de</code>).</div>
+    </details>
+  </div>
+
+  <button id="save" class="btn">Enregistrer</button>
+  <div id="status"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>

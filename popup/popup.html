@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <style>
+    :root {
+      color-scheme: light dark;
+    }
+    body {
+      width: 320px;
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px;
+      background: var(--ltp-bg, #fff);
+      color: var(--ltp-fg, #1a1a1a);
+    }
+    @media (prefers-color-scheme: dark) {
+      body { --ltp-bg: #1e1f24; --ltp-fg: #e6e6e6; }
+      .card { border-color: #34363e !important; }
+      a { color: #7fa6ff; }
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, #4f7cff, #8a5cff);
+      color: #fff;
+      font-weight: 600;
+    }
+    .header img { width: 20px; height: 20px; }
+    .card {
+      margin: 10px;
+      padding: 10px 12px;
+      border: 1px solid #dcdce4;
+      border-radius: 8px;
+    }
+    label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 12px; }
+    select, input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 6px 8px;
+      margin-bottom: 8px;
+      border: 1px solid #c8c8d0;
+      border-radius: 6px;
+      background: var(--ltp-bg, #fff);
+      color: var(--ltp-fg, #1a1a1a);
+      font-size: 13px;
+    }
+    .row { display: flex; gap: 8px; }
+    .row > div { flex: 1; }
+    .btn {
+      display: block;
+      width: calc(100% - 20px);
+      margin: 0 10px 8px;
+      padding: 9px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+    }
+    .btn:disabled { opacity: 0.55; cursor: wait; }
+    .btn-primary { background: #4f7cff; color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: #3d69ec; }
+    .btn-restore { background: #2fbf71; color: #fff; }
+    .btn-restore:hover:not(:disabled) { background: #28a762; }
+    #status {
+      margin: 4px 12px 12px;
+      padding: 0 4px;
+      font-size: 12px;
+      min-height: 16px;
+    }
+    #status.ok { color: #28a762; }
+    #status.err { color: #d64545; }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 12px 10px;
+      font-size: 11px;
+      color: #888;
+    }
+    a { text-decoration: none; }
+    #stateBadge { font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="../icons/icon-32.png" alt="">
+    <span>Libre Translate Page</span>
+  </div>
+
+  <div class="card">
+    <label for="server">Serveur LibreTranslate</label>
+    <input id="server" type="text" placeholder="http://localhost:5000" spellcheck="false">
+    <label for="apiKey">Clé API (facultatif)</label>
+    <input id="apiKey" type="password" placeholder="vide = sans clé" spellcheck="false">
+
+    <div class="row">
+      <div>
+        <label for="source">Langue source</label>
+        <select id="source"></select>
+      </div>
+      <div>
+        <label for="target">Langue cible</label>
+        <select id="target"></select>
+      </div>
+    </div>
+  </div>
+
+  <button id="translate" class="btn btn-primary">🌐 Traduire la page</button>
+  <button id="restore" class="btn btn-restore">↩︎ Restaurer l'original</button>
+
+  <div id="status"></div>
+
+  <div class="footer">
+    <span id="stateBadge">Prêt</span>
+    <a href="#" id="optionsLink">⚙️ Options</a>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
