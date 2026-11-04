@@ -80,7 +80,9 @@ async function translateBatch(texts, source, target) {
 async function detectLanguage(q) {
   try {
     const data = await ltFetch('/detect', { q });
-    if (data && data.language) return data.language;
+    // /detect renvoie un TABLEAU: [{confidence, language}, ...]
+    if (Array.isArray(data) && data.length && data[0].language) return data[0].language;
+    if (data && data.language) return data.language; // compat format ancien
     throw new Error('réponse inattendue');
   } catch (e) {
     if (e instanceof TypeError) throw e;

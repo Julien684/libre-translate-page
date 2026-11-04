@@ -23,7 +23,6 @@ function getSettings() {
 async function fillLanguageSelects(langs) {
   const source = $('source');
   const target = $('target');
-  const names = Object.keys(langs).sort();
   source.innerHTML = '';
   target.innerHTML = '';
 
@@ -32,11 +31,13 @@ async function fillLanguageSelects(langs) {
   auto.textContent = 'Auto';
   source.appendChild(auto);
 
-  for (const code of names) {
+  // /languages renvoie un TABLEAU: [{code, name, targets}, ...]
+  const sorted = langs.slice().sort((a, b) => a.name.localeCompare(b.name));
+  for (const lang of sorted) {
     for (const sel of [source, target]) {
       const opt = document.createElement('option');
-      opt.value = code;
-      opt.textContent = langs[code] + ' (' + code + ')';
+      opt.value = lang.code;
+      opt.textContent = lang.name + ' (' + lang.code + ')';
       sel.appendChild(opt);
     }
   }
