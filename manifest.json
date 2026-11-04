@@ -2,15 +2,14 @@
   "manifest_version": 2,
   "name": "Libre Translate Page",
   "description": "Translate web pages using your own LibreTranslate server (no Google, no tracking).",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "browser_specific_settings": {
     "gecko": {
       "id": "libre-translate-page@local",
       "strict_min_version": "140.0",
       "data_collection_permissions": {
-        "required": [],
-        "uses": [],
-        "data": []
+        "required": ["none"],
+        "optional": []
       }
     }
   },
