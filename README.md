@@ -13,6 +13,9 @@ Inspirée de [TWP – Translate Web Pages](https://github.com/FilipePS/Traduzir-
   par lots (25 textes par requête) vers votre serveur LibreTranslate.
 - 🔤 **Détection automatique** de la langue source (route `/detect`), ou
   langue source fixe.
+- 💬 **Bandeau de suggestion** : quand une page est dans une langue étrangère
+  (différente de la langue cible), un bandeau propose de la traduire en un clic.
+  Désactivable via le ✕ du bandeau ou le toggle dans le popup / les options.
 - ↩︎ **Restauration de l'original** en un clic (recharge la page).
 - ⚡ **Indicateur de progression** : le badge de l'icône affiche le pourcentage
   de traduction en cours, puis une ✓ verte quand la page est traduite.
@@ -55,6 +58,7 @@ manifest.json          # manifest MV2 (Firefox)
 background.js          # appels API LibreTranslate, injection des scripts
 content/translate.js   # parcourt la page, traduit par lots
 content/restore.js     # restaure l'original (recharge)
+content/banner.js      # bandeau de suggestion sur page en langue étrangère
 popup/                 # popup : serveur, langues, traduire/restaurer
 options/               # page d'options
 icons/                 # icônes (SVG sources + PNG)

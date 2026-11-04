@@ -5,7 +5,8 @@ const DEFAULTS = {
   serverUrl: 'http://localhost:5000',
   apiKey: '',
   sourceLang: 'auto',
-  targetLang: 'fr'
+  targetLang: 'fr',
+  autoBanner: true
 };
 
 /* ---------- settings ---------- */
@@ -117,6 +118,15 @@ async function setTabProgress(tabId, ratio) {
 const pendingInjections = new Map(); /* tabId -> resolve */
 
 function inject(tabId, action) {
+  if (action === 'restore') {
+    // restore.js fait juste recharger la page : il n'envoie pas de ltp-done,
+    // on résout donc immédiatement après l'injection (sinon le popup reste
+    // bloqué jusqu'au timeout).
+    return browser.tabs
+      .executeScript(tabId, { file: 'content/restore.js', runAt: 'document_idle' })
+      .then(() => ({ ok: true }))
+      .catch((e) => ({ ok: false, error: 'Injection impossible sur cette page (' + e + '). Pages protégées (pdf, addons.mozilla.org, about:…) non supportées.' }));
+  }
   return new Promise((resolve) => {
     pendingInjections.set(tabId, resolve);
     const timeout = setTimeout(() => {
@@ -181,6 +191,32 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
             pendingInjections.delete(tabId);
             p(msg);
           }
+        }
+        break;
+      }
+
+      /* content → demande de détection de langue (pour le bandeau) */
+      case 'ltp-detect': {
+        try {
+          const data = await ltFetch('/detect', { q: msg.q });
+          let lang = null;
+          if (Array.isArray(data) && data.length) lang = data[0].language;
+          else if (data && data.language) lang = data.language;
+          sendResponse({ ok: true, language: lang || null });
+        } catch (e) {
+          sendResponse({ ok: false, error: e.message || String(e) });
+        }
+        break;
+      }
+
+      /* bandeau → traduire la page courante (sender.tab.id) */
+      case 'ltp-self-translate': {
+        if (tabId != null) {
+          const result = await inject(tabId, 'translate');
+          if (result.ok) await setTabState(tabId, 'translated');
+          sendResponse(result);
+        } else {
+          sendResponse({ ok: false, error: 'Aucun onglet source.' });
         }
         break;
       }

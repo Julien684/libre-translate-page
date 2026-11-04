@@ -16,6 +16,7 @@ async function load() {
   $('apiKey').value = s.apiKey || '';
   $('source').value = s.sourceLang || DEFAULTS.sourceLang;
   $('target').value = s.targetLang || DEFAULTS.targetLang;
+  $('autoBanner').checked = s.autoBanner !== false;
 }
 
 $('save').addEventListener('click', async () => {
@@ -23,7 +24,8 @@ $('save').addEventListener('click', async () => {
     serverUrl: $('server').value.trim().replace(/\/+$/, '') || DEFAULTS.serverUrl,
     apiKey: $('apiKey').value.trim(),
     sourceLang: $('source').value.trim() || 'auto',
-    targetLang: $('target').value.trim() || 'fr'
+    targetLang: $('target').value.trim() || 'fr',
+    autoBanner: $('autoBanner').checked
   };
   await browser.storage.local.set(data);
   const st = $('status');

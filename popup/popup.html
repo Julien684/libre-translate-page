@@ -49,6 +49,16 @@
     }
     .row { display: flex; gap: 8px; }
     .row > div { flex: 1; }
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 400;
+    }
+    .toggle input { width: auto; }
     .btn {
       display: block;
       width: calc(100% - 20px);
@@ -108,6 +118,11 @@
         <select id="target"></select>
       </div>
     </div>
+
+    <label class="toggle">
+      <input id="autoBanner" type="checkbox">
+      <span>Suggérer la traduction sur les pages en langue étrangère</span>
+    </label>
   </div>
 
   <button id="translate" class="btn btn-primary">🌐 Traduire la page</button>

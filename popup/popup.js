@@ -16,7 +16,10 @@ function setBusy(busy) {
 
 function getSettings() {
   return new Promise((resolve) => {
-    browser.storage.local.get(['serverUrl', 'apiKey', 'sourceLang', 'targetLang'], resolve);
+    browser.storage.local.get(
+      ['serverUrl', 'apiKey', 'sourceLang', 'targetLang', 'autoBanner'],
+      resolve
+    );
   });
 }
 
@@ -50,6 +53,7 @@ async function init() {
   $('apiKey').value = s.apiKey || '';
   $('source').value = s.sourceLang || 'auto';
   $('target').value = s.targetLang || 'fr';
+  $('autoBanner').checked = s.autoBanner !== false;
 
   // load languages from server (best effort)
   browser.runtime.sendMessage({ type: 'ltp-status' }, (resp) => {
@@ -69,10 +73,16 @@ function saveSettingsFromPopup() {
     serverUrl: $('server').value.trim().replace(/\/+$/, '') || 'http://localhost:5000',
     apiKey: $('apiKey').value.trim(),
     sourceLang: $('source').value,
-    targetLang: $('target').value
+    targetLang: $('target').value,
+    autoBanner: $('autoBanner').checked
   };
   return browser.storage.local.set(data);
 }
+
+// Le toggle de la suggestion est sauvegardé immédiatement (pas besoin de traduire).
+$('autoBanner').addEventListener('change', () => {
+  browser.storage.local.set({ autoBanner: $('autoBanner').checked });
+});
 
 function getActiveTab() {
   return new Promise((resolve) => {
