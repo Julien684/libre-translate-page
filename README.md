@@ -45,7 +45,7 @@ Ou une installation locale : `pip install libretranslate` puis `libretranslate-s
 ## Installation du fichier `.xpi` (Firefox)
 
 1. Télécharger le fichier :
-   `https://depoa.julien68.fr/Linuxon/libre-translate-page/raw/branch/main/libre-translate-page-1.2.5.xpi`
+   `https://raw.githubusercontent.com/Julien684/libre-translate-page/main/libre-translate-page-1.2.5.xpi`
 2. **Sur Firefox Release**, les extensions non signées par Mozilla sont refusées.
    Pour autoriser l'installation de ce `.xpi` :
    - Ouvrir `about:config` et accepter l'avertissement.
