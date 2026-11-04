@@ -7,6 +7,16 @@ sans Google, sans clé API externe, sans tracking.
 Inspirée de [TWP – Translate Web Pages](https://github.com/FilipePS/Traduzir-paginas-web)
 (service Google remplacé par LibreTranslate).
 
+## Captures d'écran
+
+**Popup** — serveur, clé API, langues, boutons Traduire / Restaurer :
+
+![Popup de l'extension Libre Translate Page](screenshots/popup.png)
+
+**Bandeau de suggestion** — affiché en haut de page quand la langue est étrangère :
+
+![Bandeau de suggestion de traduction](screenshots/banner.png)
+
 ## Fonctionnalités
 
 - 🌐 **Traduction de la page complète** : tous les nœuds de texte sont traduits
@@ -35,7 +45,7 @@ Ou une installation locale : `pip install libretranslate` puis `libretranslate-s
 ## Installation du fichier `.xpi` (Firefox)
 
 1. Télécharger le fichier :
-   `https://depoa.julien68.fr/Linuxon/libre-translate-page/raw/branch/main/libre-translate-page-1.2.4.xpi`
+   `https://depoa.julien68.fr/Linuxon/libre-translate-page/raw/branch/main/libre-translate-page-1.2.5.xpi`
 2. **Sur Firefox Release**, les extensions non signées par Mozilla sont refusées.
    Pour autoriser l'installation de ce `.xpi` :
    - Ouvrir `about:config` et accepter l'avertissement.
