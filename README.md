@@ -32,7 +32,28 @@ docker run -p 5000:5000 libretranslate/libretranslate:latest
 
 Ou une installation locale : `pip install libretranslate` puis `libretranslate-server`.
 
-## Installation (développement)
+## Installation du fichier `.xpi` (Firefox)
+
+1. Télécharger le fichier :
+   `https://depoa.julien68.fr/Linuxon/libre-translate-page/raw/branch/main/libre-translate-page-1.1.0.xpi`
+2. **Sur Firefox Release**, les extensions non signées par Mozilla sont refusées.
+   Pour autoriser l'installation de ce `.xpi` :
+   - Ouvrir `about:config` et accepter l'avertissement.
+   - Chercher `xpinstall.signatures.required` et le passer à **`false`**.
+   - (Optionnel, Firefox ≥ 141 : chercher `xpinstall.enabled` et le laisser à `true`.)
+3. Ouvrir `about:addons` → ⚙️ (en haut à droite) →
+   **« Charger un module complémentaire depuis un fichier… »** → sélectionner le `.xpi`.
+4. L'extension est installée de façon permanente (elle survit aux redémarrages).
+
+> Sur **Firefox Nightly / Developer Edition** ou en **Mode développement**
+> (`about:debugging#/runtime/this-firefox`), l'étape `about:config` n'est pas
+> nécessaire : les extensions non signées y sont autorisées par défaut.
+
+> ⚠️ `xpinstall.signatures.required = false` autorise l'installation de **toute**
+> extension non signée — ne l'activez que si vous savez pourquoi, puis rétablissez
+> la valeur `true` une fois l'extension installée.
+
+## Installation (développement, sans `.xpi`)
 
 1. Ouvrir Firefox → `about:debugging#/runtime/this-firefox`
 2. « Charger un module complémentaire temporaire… »
