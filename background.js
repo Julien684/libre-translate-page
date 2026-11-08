@@ -1,12 +1,16 @@
-/* Libre Translate Page — background script (MV2, Firefox) */
+/* Libre Translate Page — background script (MV2, Firefox)
+   Les modules lib/*.js sont chargés AVANT ce fichier (voir manifest.json) et
+   exposent des globals : LtpExclusions, LtpDetect, LtpBatch, LtpLt, LtpProgress. */
 'use strict';
 
 const DEFAULTS = {
-  serverUrl: 'http://localhost:5000',
+  serverUrl: 'https://libretranslate.com',
   apiKey: '',
   sourceLang: 'auto',
   targetLang: 'fr',
-  autoBanner: true
+  autoBanner: true,
+  autoTranslate: false,      // traduit automatiquement la page (hors sites exclus)
+  excludedSites: []          // liste de domaines (sans www, minuscules)
 };
 
 /* ---------- settings ---------- */
@@ -23,34 +27,15 @@ function getSettings() {
 
 async function ltFetch(path, body, method) {
   const s = await getSettings();
-  const url = s.serverUrl.replace(/\/+$/, '') + path;
-  const headers = {};
-  let payload = body;
-  if (s.apiKey) {
-    // LibreTranslate servers accept the API key in different places:
-    //  - `api_key` field in the JSON body  (LibreTranslate ≥ 2, most common)
-    //  - `Authorization: Bearer <key>` header
-    //  - `api_key` query parameter
-    // Send it in the body AND the header so any server config is covered.
-    if (payload) payload = Object.assign({}, payload, { api_key: s.apiKey });
-    headers['Authorization'] = 'Bearer ' + s.apiKey;
-  }
-  if (payload) headers['Content-Type'] = 'application/json';
-
+  const { url, options } = LtpLt.buildRequest(s.serverUrl, path, body, s);
   let res;
   try {
-    res = await fetch(url, {
-      method: method || (payload ? 'POST' : 'GET'),
-      headers,
-      body: payload ? JSON.stringify(payload) : undefined
-    });
+    res = await fetch(url, options);
   } catch (e) {
     throw new Error('Impossible de joindre le serveur : ' + s.serverUrl);
   }
-
   let data = null;
   try { data = await res.json(); } catch (e) { /* non-JSON */ }
-
   if (!res.ok) {
     let msg = (data && (data.error || data.message)) || ('HTTP ' + res.status);
     throw new Error(msg);
@@ -66,29 +51,64 @@ async function translateBatch(texts, source, target) {
     target: target,
     format: 'text'
   });
-  let out = String(data.translatedText || '').split('\n');
-  if (out.length === texts.length) return out;
+  const out = LtpBatch.alignTranslations(String(data.translatedText || ''), texts);
+  if (out) return out;
 
   /* Fallback: newline handling mismatch → translate one by one. */
-  out = [];
+  const fallback = [];
   for (const t of texts) {
     const r = await ltFetch('/translate', { q: t, source, target, format: 'text' });
-    out.push(r.translatedText);
+    fallback.push(r.translatedText);
   }
-  return out;
+  return fallback;
+}
+
+/* Traduit un texte unique (sélection) — pas d'alignement par lot, on renvoie
+   directement le translatedText du serveur. */
+async function translateSingleText(text) {
+  const s = await getSettings();
+  let source = s.sourceLang;
+  if (source === 'auto') source = await detectLanguage(text.slice(0, 500));
+  const data = await ltFetch('/translate', {
+    q: text,
+    source: source,
+    target: s.targetLang,
+    format: 'text'
+  });
+  return { translated: data.translatedText || '', source: source, target: s.targetLang };
 }
 
 async function detectLanguage(q) {
   try {
     const data = await ltFetch('/detect', { q });
-    // /detect renvoie un TABLEAU: [{confidence, language}, ...]
-    if (Array.isArray(data) && data.length && data[0].language) return data[0].language;
-    if (data && data.language) return data.language; // compat format ancien
+    const lang = LtpDetect.parseDetectResponse(data);
+    if (lang) return lang;
     throw new Error('réponse inattendue');
   } catch (e) {
     if (e instanceof TypeError) throw e;
     throw new Error('Le serveur ne supporte pas la détection automatique — choisissez une langue source dans les options.');
   }
+}
+
+/* ---------- exclusions de sites ---------- */
+
+async function isSiteExcluded(hostname) {
+  const s = await getSettings();
+  return LtpExclusions.isExcluded(hostname, s.excludedSites);
+}
+
+async function addSiteExclusion(hostname) {
+  const s = await getSettings();
+  const excludedSites = LtpExclusions.addExclusion(s.excludedSites, hostname);
+  await browser.storage.local.set({ excludedSites });
+  return excludedSites;
+}
+
+async function removeSiteExclusion(hostname) {
+  const s = await getSettings();
+  const excludedSites = LtpExclusions.removeExclusion(s.excludedSites, hostname);
+  await browser.storage.local.set({ excludedSites });
+  return excludedSites;
 }
 
 /* ---------- icon / badge state ---------- */
@@ -111,6 +131,18 @@ async function setTabProgress(tabId, ratio) {
     await browser.browserAction.setBadgeText({ tabId, text: Math.round(ratio * 100) + '%' });
     await browser.browserAction.setBadgeBackgroundColor({ tabId, color: '#4f7cff' });
   } catch (e) { /* ignore */ }
+}
+
+/* Diffuse la progression aux deux clients possibles :
+   - pages d'extension (popup) via runtime.sendMessage ;
+   - content script (bandeau) de l'onglet via tabs.sendMessage
+     (runtime.sendMessage n'y est pas délivré de façon fiable). */
+function broadcastProgress(ratio, tabId) {
+  const msg = { type: 'ltp-progress-broadcast', ratio: ratio, tabId: tabId };
+  browser.runtime.sendMessage(msg).catch(() => {});
+  if (tabId != null) {
+    browser.tabs.sendMessage(tabId, { type: 'ltp-progress-broadcast', ratio: ratio }).catch(() => {});
+  }
 }
 
 /* ---------- content script injection ---------- */
@@ -136,9 +168,8 @@ function inject(tabId, action) {
       }
     }, 120000);
 
-    const file = action === 'restore' ? 'content/restore.js' : 'content/translate.js';
     browser.tabs
-      .executeScript(tabId, { file, runAt: 'document_idle' })
+      .executeScript(tabId, { file: 'content/translate.js', runAt: 'document_idle' })
       .catch((e) => {
         clearTimeout(timeout);
         pendingInjections.delete(tabId);
@@ -181,11 +212,15 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
       /* content → progress / completion */
       case 'ltp-progress': {
-        if (tabId != null) await setTabProgress(tabId, msg.ratio || 0);
+        if (tabId != null) {
+          await setTabProgress(tabId, msg.ratio || 0);
+          broadcastProgress(msg.ratio || 0, tabId);
+        }
         break;
       }
       case 'ltp-done': {
         if (tabId != null) {
+          broadcastProgress(1, tabId); // on signale 100% au popup
           const p = pendingInjections.get(tabId);
           if (p) {
             pendingInjections.delete(tabId);
@@ -199,13 +234,25 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       case 'ltp-detect': {
         try {
           const data = await ltFetch('/detect', { q: msg.q });
-          let lang = null;
-          if (Array.isArray(data) && data.length) lang = data[0].language;
-          else if (data && data.language) lang = data.language;
+          const lang = LtpDetect.parseDetectResponse(data);
           sendResponse({ ok: true, language: lang || null });
         } catch (e) {
           sendResponse({ ok: false, error: e.message || String(e) });
         }
+        break;
+      }
+
+      /* bandeau → est-ce que ce site est exclu ? (hostname) */
+      case 'ltp-is-excluded': {
+        const excluded = await isSiteExcluded(msg.hostname);
+        sendResponse({ ok: true, excluded: excluded });
+        break;
+      }
+
+      /* bandeau → exclure le site courant */
+      case 'ltp-add-exclusion': {
+        const excludedSites = await addSiteExclusion(msg.hostname);
+        sendResponse({ ok: true, excludedSites });
         break;
       }
 
@@ -218,6 +265,23 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         } else {
           sendResponse({ ok: false, error: 'Aucun onglet source.' });
         }
+        break;
+      }
+
+      /* options/popup → exclure / retirer / lister les sites */
+      case 'ltp-add-exclusion-url': {
+        const excludedSites = await addSiteExclusion(msg.url);
+        sendResponse({ ok: true, excludedSites });
+        break;
+      }
+      case 'ltp-remove-exclusion': {
+        const excludedSites = await removeSiteExclusion(msg.hostname);
+        sendResponse({ ok: true, excludedSites });
+        break;
+      }
+      case 'ltp-get-exclusions': {
+        const s = await getSettings();
+        sendResponse({ ok: true, excludedSites: LtpExclusions.listEntries(s.excludedSites) });
         break;
       }
 
@@ -238,3 +302,45 @@ browser.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   })();
   return true; /* async sendResponse */
 });
+
+/* ---------- menu contextuel : traduire la sélection ---------- */
+
+const SELECTION_MENU_ID = 'ltp-translate-selection';
+
+function createSelectionMenu() {
+  browser.menus.removeAll()
+    .then(() => browser.menus.create({
+      id: SELECTION_MENU_ID,
+      title: 'Traduire la sélection',
+      contexts: ['selection']
+    }))
+    .catch(() => {});
+}
+
+browser.menus.onClicked.addListener(async (info, tab) => {
+  if (info.menuItemId !== SELECTION_MENU_ID) return;
+  const text = (info.selectionText || '').trim();
+  const tabId = tab && tab.id;
+  if (!text || tabId == null) return;
+
+  // Injecte la bulle (idempotent) et capture la position de la sélection
+  // tant qu'elle est encore visible (avant la fin de la traduction).
+  try {
+    await browser.tabs.executeScript(tabId, { file: 'content/selection.js', runAt: 'document_idle' });
+    await browser.tabs.sendMessage(tabId, { type: 'ltp-selection-capture' });
+  } catch (e) { /* page protégée : pas de bulle possible */ }
+
+  try {
+    const res = await translateSingleText(text);
+    await browser.tabs.sendMessage(tabId, {
+      type: 'ltp-selection-result', original: text,
+      translated: res.translated, source: res.source, target: res.target
+    }).catch(() => {});
+  } catch (e) {
+    await browser.tabs.sendMessage(tabId, {
+      type: 'ltp-selection-result', original: text, error: e.message || String(e)
+    }).catch(() => {});
+  }
+});
+
+createSelectionMenu();

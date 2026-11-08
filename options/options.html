@@ -14,6 +14,7 @@
     }
     h1 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
     h1 img { width: 28px; height: 28px; }
+    h2 { font-size: 16px; margin: 0 0 4px; }
     .card {
       margin: 16px 0;
       padding: 16px;
@@ -43,24 +44,60 @@
       cursor: pointer;
     }
     .btn:hover { background: #3d69ec; }
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: 6px;
+      border: 1px solid #c8c8d0;
+      background: var(--bg, #fff);
+      color: inherit;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-sm:hover { background: rgba(0,0,0,0.05); }
+    .toggle-line {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 16px; font-weight: 400; cursor: pointer;
+    }
+    .toggle-line input { width: auto; }
     #status { margin-top: 10px; font-size: 13px; min-height: 18px; }
     #status.ok { color: #28a762; }
     #status.err { color: #d64545; }
     details { margin-top: 12px; }
     summary { cursor: pointer; font-weight: 600; }
+
+    /* Exclusions */
+    .excl-add { display: flex; gap: 8px; margin-top: 8px; }
+    .excl-add input { flex: 1; }
+    #exclList { list-style: none; padding: 0; margin: 12px 0 0; }
+    #exclList li {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 10px; margin-bottom: 6px;
+      border: 1px solid #dcdce4; border-radius: 6px;
+      font-size: 13px;
+    }
+    @media (prefers-color-scheme: dark) { #exclList li { border-color: #34363e; } }
+    #exclList li .dom { font-family: ui-monospace, monospace; }
+    #exclList li .trash {
+      border: none; background: transparent; cursor: pointer;
+      font-size: 15px; padding: 2px 6px; border-radius: 4px;
+    }
+    #exclList li .trash:hover { background: rgba(214,69,69,0.15); }
+    #exclEmpty { color: #888; font-size: 13px; margin-top: 10px; }
   </style>
 </head>
 <body>
   <h1><img src="../icons/icon-32.png" alt=""> Libre Translate Page — Options</h1>
 
   <div class="card">
+    <h2>Serveur</h2>
     <label for="server">Serveur LibreTranslate</label>
-    <input id="server" type="text" placeholder="http://localhost:5000" spellcheck="false">
-    <div class="hint">URL de votre instance LibreTranslate (ex. <code>http://localhost:5000</code> ou <code>http://&lt;adresse-du-serveur&gt;:5000</code>).</div>
+    <input id="server" type="text" placeholder="https://libretranslate.com" spellcheck="false">
+    <div class="hint">URL de votre instance LibreTranslate (ex. <code>https://libretranslate.com</code> ou <code>http://&lt;adresse-du-serveur&gt;:5000</code>).</div>
 
     <label for="apiKey">Clé API (facultatif)</label>
     <input id="apiKey" type="password" placeholder="vide si votre serveur ne demande pas de clé" spellcheck="false">
-    <div class="hint">Si votre serveur est protégé par une clé (backend libretranslate), entrez-la ici. Envoyée en en-tête <code>Authorization: Bearer</code>.</div>
+    <div class="hint">Si votre serveur est protégé par une clé, entrez-la ici. Envoyée en en-tête <code>Authorization: Bearer</code>.</div>
 
     <details>
       <summary>Langues par défaut</summary>
@@ -73,15 +110,31 @@
       <div class="hint">Code ISO de la langue de traduction (ex. <code>fr</code>, <code>en</code>, <code>de</code>).</div>
     </details>
 
-    <label style="display:flex;align-items:center;gap:8px;margin-top:16px;font-weight:400;cursor:pointer;">
-      <input id="autoBanner" type="checkbox" style="width:auto;">
+    <label class="toggle-line">
+      <input id="autoBanner" type="checkbox">
       <span>Suggérer la traduction sur les pages en langue étrangère (bandeau)</span>
     </label>
+    <label class="toggle-line">
+      <input id="autoTranslate" type="checkbox">
+      <span>Traduire automatiquement les pages (hors sites exclus)</span>
+    </label>
+  </div>
+
+  <div class="card" id="exclCard">
+    <h2>Exclusions</h2>
+    <div class="hint">Ces sites ne seront jamais traduits ni proposés à la traduction. Saisissez une URL complète ou un nom de domaine.</div>
+    <div class="excl-add">
+      <input id="exclInput" type="text" placeholder="ex. exemple.com ou https://exemple.com/page" spellcheck="false">
+      <button id="exclAdd" class="btn-sm">+ Ajouter</button>
+    </div>
+    <ul id="exclList"></ul>
+    <div id="exclEmpty">Aucun site exclu.</div>
   </div>
 
   <button id="save" class="btn">Enregistrer</button>
   <div id="status"></div>
 
+  <script src="../lib/exclusions.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

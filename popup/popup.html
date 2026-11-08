@@ -76,6 +76,39 @@
     .btn-primary:hover:not(:disabled) { background: #3d69ec; }
     .btn-restore { background: #2fbf71; color: #fff; }
     .btn-restore:hover:not(:disabled) { background: #28a762; }
+    .btn-exclude { background: #fff; color: #d64545; border: 1px solid #e6b8b8; }
+    .btn-exclude:hover:not(:disabled) { background: #fdecec; border-color: #d64545; }
+
+    /* Barre de progression du popup (traduction lancée depuis l'icône) */
+    #progress {
+      display: none;
+      margin: 10px 10px 0;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(79, 124, 255, 0.10);
+      border: 1px solid rgba(79, 124, 255, 0.30);
+    }
+    #progress .plabel {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    #progress .bar {
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(79, 124, 255, 0.18);
+      overflow: hidden;
+    }
+    #progress .fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #4f7cff, #8a5cff);
+      transition: width 0.25s ease;
+    }
+
     #status {
       margin: 4px 12px 12px;
       padding: 0 4px;
@@ -102,9 +135,14 @@
     <span>Libre Translate Page</span>
   </div>
 
+  <div id="progress">
+    <div class="plabel"><span>Traduction en cours…</span><span id="progressPct">0%</span></div>
+    <div class="bar"><div class="fill" id="progressFill"></div></div>
+  </div>
+
   <div class="card">
     <label for="server">Serveur LibreTranslate</label>
-    <input id="server" type="text" placeholder="http://localhost:5000" spellcheck="false">
+    <input id="server" type="text" placeholder="https://libretranslate.com" spellcheck="false">
     <label for="apiKey">Clé API (facultatif)</label>
     <input id="apiKey" type="password" placeholder="vide = sans clé" spellcheck="false">
 
@@ -123,10 +161,15 @@
       <input id="autoBanner" type="checkbox">
       <span>Suggérer la traduction sur les pages en langue étrangère</span>
     </label>
+    <label class="toggle">
+      <input id="autoTranslate" type="checkbox">
+      <span>Traduire automatiquement (hors sites exclus)</span>
+    </label>
   </div>
 
   <button id="translate" class="btn btn-primary">🌐 Traduire la page</button>
   <button id="restore" class="btn btn-restore">↩︎ Restaurer l'original</button>
+  <button id="exclude" class="btn btn-exclude" title="Ne plus traduire ni suggérer ce site (domaine de l'onglet actif)">🚫 Exclure ce site</button>
 
   <div id="status"></div>
 
@@ -135,6 +178,7 @@
     <a href="#" id="optionsLink">⚙️ Options</a>
   </div>
 
+  <script src="../lib/progress.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

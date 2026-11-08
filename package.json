@@ -1,0 +1,10 @@
+{
+  "name": "libre-translate-page",
+  "version": "1.3.5",
+  "private": true,
+  "description": "Translate web pages using your own LibreTranslate server (no Google, no tracking).",
+  "license": "MIT",
+  "scripts": {
+    "test": "node test/run.js"
+  }
+}

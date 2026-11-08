@@ -9,3 +9,6 @@ dist/
 
 # Local dev artifacts
 *.log
+
+# Fichiers .xpi : publiés uniquement dans la section Releases (assets), pas dans le code
+*.xpi
