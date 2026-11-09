@@ -4,6 +4,9 @@ Extension **Firefox** qui traduit une page web entière en utilisant **votre pro
 serveur [LibreTranslate](https://github.com/LibreTranslate/LibreTranslate)** —
 sans Google, sans clé API externe, sans tracking.
 
+Disponible sur le **Mozilla Add-ons Store** :
+[libre-translate-page](https://addons.mozilla.org/fr/firefox/addon/libre-translate-page/)
+
 Inspirée de [TWP – Translate Web Pages](https://github.com/FilipePS/Traduzir-paginas-web)
 (service Google remplacé par LibreTranslate).
 
@@ -63,6 +66,15 @@ Ou une installation locale : `pip install libretranslate` puis `libretranslate-s
 
 Renseignez ensuite l'URL de votre instance (et sa clé API si elle en demande une)
 dans le popup ou la page **Options**.
+
+## Installation depuis l'AMO (recommandée)
+
+L'extension est publiée sur le **Mozilla Add-ons Store** :
+[https://addons.mozilla.org/fr/firefox/addon/libre-translate-page/](https://addons.mozilla.org/fr/firefox/addon/libre-translate-page/)
+
+C'est la méthode la plus simple : l'extension y est **signée par Mozilla**, il
+n'y a donc pas besoin de modifier `about:config`. Cliquez sur **Ajouter à
+Firefox** puis **Autoriser** sur la page de confirmation.
 
 ## Installation du fichier `.xpi` (Firefox)
 
